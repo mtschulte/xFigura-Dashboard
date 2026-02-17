@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSV Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-hover: #232736;
+      --border: #2e3348;
+      --text: #e4e6f0;
+      --text-muted: #8b8fa8;
+      --accent: #6c7aee;
+      --accent-hover: #5a68d6;
+      --danger: #e5534b;
+      --success: #3fb950;
+      --warning: #d29922;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Upload Screen */
+    #upload-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 4rem 3rem;
+      text-align: center;
+      max-width: 520px;
+      width: 100%;
+      transition: border-color 0.2s, background 0.2s;
+      cursor: pointer;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(108, 122, 238, 0.05);
+    }
+
+    .upload-zone h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .upload-zone p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .upload-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.7rem 2rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .upload-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    /* Dashboard */
+    #dashboard {
+      display: none;
+      padding: 1.5rem 2rem 2rem;
+    }
+
+    /* Header */
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .dash-header h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+    }
+
+    /* Stats Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem 1.3rem;
+    }
+
+    .stat-card .label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+    }
+
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    /* Filters Panel */
+    .filters-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .filters-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .filters-header h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .filters-toggle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .filter-group input,
+    .filter-group select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .filter-group input:focus,
+    .filter-group select:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-group select {
+      cursor: pointer;
+    }
+
+    .filter-range {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .filter-range input {
+      width: 50%;
+    }
+
+    .filter-range span {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .filter-tag {
+      background: rgba(108, 122, 238, 0.15);
+      color: var(--accent);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .filter-tag .remove {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    /* Table */
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .table-toolbar .row-count {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .search-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      width: 260px;
+      max-width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box:focus {
+      border-color: var(--accent);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: var(--bg);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+    }
+
+    thead th:hover {
+      color: var(--text);
+    }
+
+    thead th .sort-arrow {
+      margin-left: 0.3rem;
+      font-size: 0.7rem;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    tbody td {
+      padding: 0.65rem 1rem;
+      white-space: nowrap;
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .pagination button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+    }
+
+    .pagination button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .pagination button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .pagination .page-info {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin: 0 0.5rem;
+    }
+
+    .page-size-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.35rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      margin-left: 0.75rem;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      #dashboard {
+        padding: 1rem;
+      }
+
+      .filters-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Upload Screen -->
+<div id="upload-screen">
+  <div class="upload-zone" id="drop-zone">
+    <h1>CSV Dashboard</h1>
+    <p>Drop your CSV file here or click to browse</p>
+    <button class="upload-btn" id="browse-btn">Browse Files</button>
+    <input type="file" id="file-input" accept=".csv" />
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="dash-header">
+    <h1 id="file-title">Dashboard</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" id="export-btn">Export Filtered CSV</button>
+      <button class="btn-secondary" id="reset-btn">Reset Filters</button>
+      <button class="btn-secondary" id="new-file-btn">Load New File</button>
+    </div>
+  </div>
+
+  <div class="stats-row" id="stats-row"></div>
+
+  <div class="filters-panel">
+    <div class="filters-header" id="filters-header">
+      <h2>Filters</h2>
+      <span class="filters-toggle" id="filters-toggle">Hide</span>
+    </div>
+    <div class="filters-grid" id="filters-grid"></div>
+    <div class="active-filters" id="active-filters"></div>
+  </div>
+
+  <div class="table-container">
+    <div class="table-toolbar">
+      <span class="row-count" id="row-count"></span>
+      <input type="text" class="search-box" id="global-search" placeholder="Search all columns..." />
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // ---- State ----
+  let rawData = [];
+  let columns = [];
+  let columnTypes = {}; // 'text' | 'number' | 'date'
+  let filteredData = [];
+  let sortCol = null;
+  let sortDir = 'asc';
+  let currentPage = 1;
+  let pageSize = 25;
+  let filters = {};
+  let globalSearch = '';
+  let filtersVisible = true;
+
+  // Known columns
+  const KNOWN_COLUMNS = ['id', 'Time', 'credits', 'email', 'modelName', 'referenceId', 'type', 'Number of Generations'];
+
+  // ---- CSV Parsing ----
+  function parseCSV(text) {
+    const lines = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (i + 1 < text.length && text[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          current += ch;
+        }
+      } else {
+        if (ch === '"') {
+          inQuotes = true;
+        } else if (ch === ',') {
+          lines.push(current);
+          current = '';
+        } else if (ch === '\n' || ch === '\r') {
+          lines.push(current);
+          current = '';
+          if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') i++;
+          lines.push(null); // row separator
+        } else {
+          current += ch;
+        }
+      }
+    }
+    if (current !== '') lines.push(current);
+
+    // Split into rows
+    const rows = [];
+    let row = [];
+    for (const val of lines) {
+      if (val === null) {
+        if (row.length > 0) rows.push(row);
+        row = [];
+      } else {
+        row.push(val.trim());
+      }
+    }
+    if (row.length > 0) rows.push(row);
+    return rows;
+  }
+
+  function detectType(values) {
+    let numCount = 0;
+    let dateCount = 0;
+    let total = 0;
+    for (const v of values) {
+      if (v === '') continue;
+      total++;
+      if (!isNaN(v) && v !== '') numCount++;
+      else if (!isNaN(Date.parse(v)) && v.length > 4) dateCount++;
+    }
+    if (total === 0) return 'text';
+    if (numCount / total > 0.8) return 'number';
+    if (dateCount / total > 0.8) return 'date';
+    return 'text';
+  }
+
+  function loadCSV(text, fileName) {
+    const rows = parseCSV(text);
+    if (rows.length < 2) return alert('CSV must have a header and at least one data row.');
+
+    columns = rows[0];
+    rawData = [];
+    for (let i = 1; i < rows.length; i++) {
+      const obj = {};
+      for (let j = 0; j < columns.length; j++) {
+        obj[columns[j]] = rows[i][j] !== undefined ? rows[i][j] : '';
+      }
+      rawData.push(obj);
+    }
+
+    // Detect types
+    columnTypes = {};
+    for (const col of columns) {
+      const vals = rawData.map(r => r[col]);
+      columnTypes[col] = detectType(vals);
+    }
+
+    filters = {};
+    globalSearch = '';
+    sortCol = null;
+    sortDir = 'asc';
+    currentPage = 1;
+
+    document.getElementById('file-title').textContent = fileName || 'Dashboard';
+    document.getElementById('upload-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('global-search').value = '';
+
+    buildFilters();
+    applyFilters();
+  }
+
+  // ---- Unique sorted values for dropdowns ----
+  function uniqueValues(col) {
+    const set = new Set();
+    for (const row of rawData) {
+      if (row[col] !== '') set.add(row[col]);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  }
+
+  // ---- Build Filters ----
+  function buildFilters() {
+    const grid = document.getElementById('filters-grid');
+    grid.innerHTML = '';
+
+    for (const col of columns) {
+      const type = columnTypes[col];
+      const group = document.createElement('div');
+      group.className = 'filter-group';
+
+      const label = document.createElement('label');
+      label.textContent = col;
+      group.appendChild(label);
+
+      if (type === 'number') {
+        const range = document.createElement('div');
+        range.className = 'filter-range';
+
+        const minInput = document.createElement('input');
+        minInput.type = 'number';
+        minInput.placeholder = 'Min';
+        minInput.dataset.col = col;
+        minInput.dataset.bound = 'min';
+        minInput.addEventListener('input', onFilterChange);
+
+        const sep = document.createElement('span');
+        sep.textContent = '\u2013';
+
+        const maxInput = document.createElement('input');
+        maxInput.type = 'number';
+        maxInput.placeholder = 'Max';
+        maxInput.dataset.col = col;
+        maxInput.dataset.bound = 'max';
+        maxInput.addEventListener('input', onFilterChange);
+
+        range.appendChild(minInput);
+        range.appendChild(sep);
+        range.appendChild(maxInput);
+        group.appendChild(range);
+      } else if (type === 'date') {
+        const range = document.createElement('div');
+        range.className = 'filter-range';
+
+        const fromInput = document.createElement('input');
+        fromInput.type = 'date';
+        fromInput.dataset.col = col;
+        fromInput.dataset.bound = 'from';
+        fromInput.addEventListener('input', onFilterChange);
+
+        const sep = document.createElement('span');
+        sep.textContent = '\u2013';
+
+        const toInput = document.createElement('input');
+        toInput.type = 'date';
+        toInput.dataset.col = col;
+        toInput.dataset.bound = 'to';
+        toInput.addEventListener('input', onFilterChange);
+
+        range.appendChild(fromInput);
+        range.appendChild(sep);
+        range.appendChild(toInput);
+        group.appendChild(range);
+      } else {
+        // Text: use dropdown if unique values <= 50, else text input
+        const uniq = uniqueValues(col);
+        if (uniq.length <= 50) {
+          const sel = document.createElement('select');
+          sel.dataset.col = col;
+          sel.dataset.filterType = 'select';
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'All';
+          sel.appendChild(opt);
+          for (const v of uniq) {
+            const o = document.createElement('option');
+            o.value = v;
+            o.textContent = v.length > 40 ? v.slice(0, 40) + '\u2026' : v;
+            sel.appendChild(o);
+          }
+          sel.addEventListener('change', onFilterChange);
+          group.appendChild(sel);
+        } else {
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.placeholder = 'Search\u2026';
+          inp.dataset.col = col;
+          inp.dataset.filterType = 'text';
+          inp.addEventListener('input', onFilterChange);
+          group.appendChild(inp);
+        }
+      }
+
+      grid.appendChild(group);
+    }
+  }
+
+  function onFilterChange(e) {
+    const el = e.target;
+    const col = el.dataset.col;
+    const type = columnTypes[col];
+
+    if (type === 'number') {
+      if (!filters[col]) filters[col] = {};
+      const bound = el.dataset.bound;
+      if (el.value === '') {
+        delete filters[col][bound];
+        if (Object.keys(filters[col]).length === 0) delete filters[col];
+      } else {
+        filters[col][bound] = parseFloat(el.value);
+      }
+    } else if (type === 'date') {
+      if (!filters[col]) filters[col] = {};
+      const bound = el.dataset.bound;
+      if (el.value === '') {
+        delete filters[col][bound];
+        if (Object.keys(filters[col]).length === 0) delete filters[col];
+      } else {
+        filters[col][bound] = el.value;
+      }
+    } else {
+      if (el.value === '') {
+        delete filters[col];
+      } else {
+        filters[col] = el.value;
+      }
+    }
+
+    currentPage = 1;
+    applyFilters();
+  }
+
+  // ---- Apply Filters & Render ----
+  function applyFilters() {
+    filteredData = rawData.filter(row => {
+      // Global search
+      if (globalSearch) {
+        const q = globalSearch.toLowerCase();
+        let match = false;
+        for (const col of columns) {
+          if (row[col].toLowerCase().includes(q)) { match = true; break; }
+        }
+        if (!match) return false;
+      }
+
+      // Column filters
+      for (const col of Object.keys(filters)) {
+        const f = filters[col];
+        const type = columnTypes[col];
+        const val = row[col];
+
+        if (type === 'number') {
+          const num = parseFloat(val);
+          if (isNaN(num)) return false;
+          if (f.min !== undefined && num < f.min) return false;
+          if (f.max !== undefined && num > f.max) return false;
+        } else if (type === 'date') {
+          const d = new Date(val).getTime();
+          if (isNaN(d)) return false;
+          if (f.from && d < new Date(f.from).getTime()) return false;
+          if (f.to && d > new Date(f.to + 'T23:59:59').getTime()) return false;
+        } else {
+          // Text/select
+          if (typeof f === 'string') {
+            // Check if it's a select (exact) or text (contains)
+            const el = document.querySelector(`[data-col="${CSS.escape(col)}"]`);
+            if (el && el.dataset.filterType === 'text') {
+              if (!val.toLowerCase().includes(f.toLowerCase())) return false;
+            } else {
+              if (val !== f) return false;
+            }
+          }
+        }
+      }
+      return true;
+    });
+
+    // Sort
+    if (sortCol !== null) {
+      const type = columnTypes[sortCol];
+      filteredData.sort((a, b) => {
+        let va = a[sortCol];
+        let vb = b[sortCol];
+        if (type === 'number') {
+          va = parseFloat(va) || 0;
+          vb = parseFloat(vb) || 0;
+          return sortDir === 'asc' ? va - vb : vb - va;
+        }
+        if (type === 'date') {
+          va = new Date(va).getTime() || 0;
+          vb = new Date(vb).getTime() || 0;
+          return sortDir === 'asc' ? va - vb : vb - va;
+        }
+        va = va.toLowerCase();
+        vb = vb.toLowerCase();
+        const cmp = va.localeCompare(vb, undefined, { numeric: true });
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    renderStats();
+    renderActiveTags();
+    renderTable();
+    renderPagination();
+  }
+
+  // ---- Stats ----
+  function renderStats() {
+    const row = document.getElementById('stats-row');
+    row.innerHTML = '';
+
+    const totalCard = makeStatCard('Total Rows', rawData.length.toLocaleString());
+    const filteredCard = makeStatCard('Filtered Rows', filteredData.length.toLocaleString());
+    row.appendChild(totalCard);
+    row.appendChild(filteredCard);
+
+    // Sum of numeric columns
+    for (const col of columns) {
+      if (columnTypes[col] === 'number') {
+        let sum = 0;
+        for (const r of filteredData) {
+          const n = parseFloat(r[col]);
+          if (!isNaN(n)) sum += n;
+        }
+        const display = sum % 1 === 0 ? sum.toLocaleString() : sum.toLocaleString(undefined, { maximumFractionDigits: 2 });
+        row.appendChild(makeStatCard('Total ' + col, display));
+      }
+    }
+
+    // Unique emails if present
+    if (columns.includes('email')) {
+      const emails = new Set(filteredData.map(r => r['email']).filter(Boolean));
+      row.appendChild(makeStatCard('Unique Emails', emails.size.toLocaleString()));
+    }
+
+    // Unique models if present
+    if (columns.includes('modelName')) {
+      const models = new Set(filteredData.map(r => r['modelName']).filter(Boolean));
+      row.appendChild(makeStatCard('Unique Models', models.size.toLocaleString()));
+    }
+  }
+
+  function makeStatCard(label, value) {
+    const div = document.createElement('div');
+    div.className = 'stat-card';
+    div.innerHTML = `<div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div>`;
+    return div;
+  }
+
+  // ---- Active Filter Tags ----
+  function renderActiveTags() {
+    const container = document.getElementById('active-filters');
+    container.innerHTML = '';
+
+    for (const col of Object.keys(filters)) {
+      const f = filters[col];
+      const type = columnTypes[col];
+      let text = '';
+
+      if (type === 'number') {
+        if (f.min !== undefined && f.max !== undefined) text = `${col}: ${f.min} \u2013 ${f.max}`;
+        else if (f.min !== undefined) text = `${col}: \u2265 ${f.min}`;
+        else if (f.max !== undefined) text = `${col}: \u2264 ${f.max}`;
+      } else if (type === 'date') {
+        if (f.from && f.to) text = `${col}: ${f.from} \u2013 ${f.to}`;
+        else if (f.from) text = `${col}: from ${f.from}`;
+        else if (f.to) text = `${col}: to ${f.to}`;
+      } else {
+        text = `${col}: ${f}`;
+      }
+
+      if (text) {
+        const tag = document.createElement('span');
+        tag.className = 'filter-tag';
+        tag.innerHTML = `${escapeHtml(text)} <span class="remove" data-col="${escapeHtml(col)}">&times;</span>`;
+        tag.querySelector('.remove').addEventListener('click', () => clearFilter(col));
+        container.appendChild(tag);
+      }
+    }
+
+    if (globalSearch) {
+      const tag = document.createElement('span');
+      tag.className = 'filter-tag';
+      tag.innerHTML = `Search: "${escapeHtml(globalSearch)}" <span class="remove">&times;</span>`;
+      tag.querySelector('.remove').addEventListener('click', () => {
+        globalSearch = '';
+        document.getElementById('global-search').value = '';
+        currentPage = 1;
+        applyFilters();
+      });
+      container.appendChild(tag);
+    }
+  }
+
+  function clearFilter(col) {
+    delete filters[col];
+    // Reset UI
+    const els = document.querySelectorAll(`[data-col="${CSS.escape(col)}"]`);
+    els.forEach(el => { el.value = ''; });
+    currentPage = 1;
+    applyFilters();
+  }
+
+  // ---- Table ----
+  function renderTable() {
+    // Head
+    const head = document.getElementById('table-head');
+    head.innerHTML = '';
+    const tr = document.createElement('tr');
+    for (const col of columns) {
+      const th = document.createElement('th');
+      th.textContent = col;
+      if (sortCol === col) {
+        const arrow = document.createElement('span');
+        arrow.className = 'sort-arrow';
+        arrow.textContent = sortDir === 'asc' ? '\u25B2' : '\u25BC';
+        th.appendChild(arrow);
+      }
+      th.addEventListener('click', () => {
+        if (sortCol === col) {
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortCol = col;
+          sortDir = 'asc';
+        }
+        applyFilters();
+      });
+      tr.appendChild(th);
+    }
+    head.appendChild(tr);
+
+    // Body
+    const body = document.getElementById('table-body');
+    body.innerHTML = '';
+    const start = (currentPage - 1) * pageSize;
+    const end = Math.min(start + pageSize, filteredData.length);
+    for (let i = start; i < end; i++) {
+      const row = filteredData[i];
+      const tr = document.createElement('tr');
+      for (const col of columns) {
+        const td = document.createElement('td');
+        td.textContent = row[col];
+        td.title = row[col];
+        tr.appendChild(td);
+      }
+      body.appendChild(tr);
+    }
+
+    document.getElementById('row-count').textContent =
+      `Showing ${filteredData.length > 0 ? start + 1 : 0}\u2013${end} of ${filteredData.length.toLocaleString()} rows`;
+  }
+
+  // ---- Pagination ----
+  function renderPagination() {
+    const container = document.getElementById('pagination');
+    container.innerHTML = '';
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
+
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '\u2190 Prev';
+    prevBtn.disabled = currentPage <= 1;
+    prevBtn.addEventListener('click', () => { currentPage--; renderTable(); renderPagination(); });
+    container.appendChild(prevBtn);
+
+    // Page numbers
+    const maxButtons = 7;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
+
+    if (startPage > 1) {
+      container.appendChild(makePageBtn(1));
+      if (startPage > 2) {
+        const dots = document.createElement('span');
+        dots.className = 'page-info';
+        dots.textContent = '\u2026';
+        container.appendChild(dots);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      container.appendChild(makePageBtn(i));
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const dots = document.createElement('span');
+        dots.className = 'page-info';
+        dots.textContent = '\u2026';
+        container.appendChild(dots);
+      }
+      container.appendChild(makePageBtn(totalPages));
+    }
+
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next \u2192';
+    nextBtn.disabled = currentPage >= totalPages;
+    nextBtn.addEventListener('click', () => { currentPage++; renderTable(); renderPagination(); });
+    container.appendChild(nextBtn);
+
+    // Page size selector
+    const sizeSelect = document.createElement('select');
+    sizeSelect.className = 'page-size-select';
+    for (const size of [10, 25, 50, 100]) {
+      const opt = document.createElement('option');
+      opt.value = size;
+      opt.textContent = size + ' / page';
+      if (size === pageSize) opt.selected = true;
+      sizeSelect.appendChild(opt);
+    }
+    sizeSelect.addEventListener('change', (e) => {
+      pageSize = parseInt(e.target.value);
+      currentPage = 1;
+      renderTable();
+      renderPagination();
+    });
+    container.appendChild(sizeSelect);
+  }
+
+  function makePageBtn(num) {
+    const btn = document.createElement('button');
+    btn.textContent = num;
+    if (num === currentPage) btn.classList.add('active');
+    btn.addEventListener('click', () => { currentPage = num; renderTable(); renderPagination(); });
+    return btn;
+  }
+
+  // ---- Export ----
+  function exportCSV() {
+    let csv = columns.map(c => `"${c.replace(/"/g, '""')}"`).join(',') + '\n';
+    for (const row of filteredData) {
+      csv += columns.map(c => `"${(row[c] || '').replace(/"/g, '""')}"`).join(',') + '\n';
+    }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'filtered_export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Helpers ----
+  function escapeHtml(s) {
+    const div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  // ---- Event Listeners ----
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  document.getElementById('browse-btn').addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('click', (e) => {
+    if (e.target.id !== 'browse-btn') fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) readFile(file);
+  });
+
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.endsWith('.csv')) readFile(file);
+    else alert('Please drop a CSV file.');
+  });
+
+  function readFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => loadCSV(e.target.result, file.name.replace('.csv', ''));
+    reader.readAsText(file);
+  }
+
+  document.getElementById('global-search').addEventListener('input', (e) => {
+    globalSearch = e.target.value;
+    currentPage = 1;
+    applyFilters();
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    filters = {};
+    globalSearch = '';
+    sortCol = null;
+    sortDir = 'asc';
+    currentPage = 1;
+    document.getElementById('global-search').value = '';
+    buildFilters();
+    applyFilters();
+  });
+
+  document.getElementById('export-btn').addEventListener('click', exportCSV);
+
+  document.getElementById('new-file-btn').addEventListener('click', () => {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('upload-screen').style.display = 'flex';
+    fileInput.value = '';
+  });
+
+  document.getElementById('filters-header').addEventListener('click', () => {
+    filtersVisible = !filtersVisible;
+    document.getElementById('filters-grid').style.display = filtersVisible ? '' : 'none';
+    document.getElementById('filters-toggle').textContent = filtersVisible ? 'Hide' : 'Show';
+  });
+})();
+</script>
+</body>
+</html>
