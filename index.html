@@ -409,6 +409,185 @@
       outline: none;
     }
 
+    /* Charts */
+    .charts-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .section-header h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    .section-toggle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .chart-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .chart-card h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.2rem;
+      margin-top: 0.75rem;
+      font-size: 0.78rem;
+    }
+
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .chart-empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 2rem 1rem;
+      font-size: 0.88rem;
+    }
+
+    /* Email Summary Table */
+    .email-summary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .email-summary-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+    }
+
+    .email-summary-header h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .email-summary .table-scroll {
+      overflow-x: auto;
+    }
+
+    .email-summary table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .email-summary thead th {
+      background: var(--bg);
+      padding: 0.65rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .email-summary thead th:hover {
+      color: var(--text);
+    }
+
+    .email-summary tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .email-summary tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    .email-summary tbody td {
+      padding: 0.55rem 1rem;
+      white-space: nowrap;
+    }
+
+    .email-summary tbody td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .email-bar-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .email-bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .email-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--accent);
+    }
+
+    .email-bar-val {
+      font-size: 0.82rem;
+      font-variant-numeric: tabular-nums;
+      min-width: 55px;
+      text-align: right;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       #dashboard {
@@ -416,6 +595,10 @@
       }
 
       .filters-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .charts-grid {
         grid-template-columns: 1fr;
       }
 
@@ -449,6 +632,54 @@
   </div>
 
   <div class="stats-row" id="stats-row"></div>
+
+  <!-- Charts -->
+  <div class="charts-section" id="charts-section">
+    <div class="section-header" id="charts-header">
+      <h2>Charts</h2>
+      <span class="section-toggle" id="charts-toggle">Hide</span>
+    </div>
+    <div class="charts-grid" id="charts-grid">
+      <div class="chart-card">
+        <h3>Credits by Email (Top 15)</h3>
+        <canvas id="chart-credits-email" height="300"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Generations by Email (Top 15)</h3>
+        <canvas id="chart-gens-email" height="300"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Type Distribution</h3>
+        <canvas id="chart-type" height="280"></canvas>
+        <div class="chart-legend" id="legend-type"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Model Distribution</h3>
+        <canvas id="chart-model" height="280"></canvas>
+        <div class="chart-legend" id="legend-model"></div>
+      </div>
+      <div class="chart-card wide">
+        <h3>Credits Over Time</h3>
+        <canvas id="chart-timeline" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Email Summary -->
+  <div class="email-summary" id="email-summary-section">
+    <div class="email-summary-header" id="email-summary-header">
+      <h2>Sum by Email</h2>
+      <span class="section-toggle" id="email-summary-toggle">Show</span>
+    </div>
+    <div id="email-summary-body" style="display:none;">
+      <div class="table-scroll">
+        <table>
+          <thead id="email-summary-head"></thead>
+          <tbody id="email-summary-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <div class="filters-panel">
     <div class="filters-header" id="filters-header">
@@ -804,6 +1035,8 @@
     }
 
     renderStats();
+    renderCharts();
+    renderEmailSummary();
     renderActiveTags();
     renderTable();
     renderPagination();
@@ -1030,6 +1263,424 @@
     return btn;
   }
 
+  // ---- Chart Colors ----
+  const CHART_COLORS = [
+    '#6c7aee', '#3fb950', '#d29922', '#e5534b', '#a371f7',
+    '#57b7e4', '#f47067', '#e09b4d', '#7ee787', '#79c0ff',
+    '#d2a8ff', '#ffa657', '#ff7b72', '#7ee2da', '#f2cc60',
+    '#cea5fb',
+  ];
+
+  function getColor(i) { return CHART_COLORS[i % CHART_COLORS.length]; }
+
+  // ---- Aggregate helpers ----
+  function aggregateByKey(data, keyCol, valCol) {
+    const map = {};
+    for (const row of data) {
+      const key = row[keyCol] || '(empty)';
+      const val = parseFloat(row[valCol]) || 0;
+      map[key] = (map[key] || 0) + val;
+    }
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  }
+
+  function countByKey(data, keyCol) {
+    const map = {};
+    for (const row of data) {
+      const key = row[keyCol] || '(empty)';
+      map[key] = (map[key] || 0) + 1;
+    }
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  }
+
+  // ---- Chart Rendering ----
+  function renderCharts() {
+    const hasEmail = columns.includes('email');
+    const hasCredits = columns.includes('credits') && columnTypes['credits'] === 'number';
+    const hasGens = columns.includes('Number of Generations') && columnTypes['Number of Generations'] === 'number';
+    const hasType = columns.includes('type');
+    const hasModel = columns.includes('modelName');
+    const hasTime = columns.includes('Time');
+
+    // Credits by Email bar chart
+    if (hasEmail && hasCredits) {
+      const agg = aggregateByKey(filteredData, 'email', 'credits').slice(0, 15);
+      drawHorizontalBar('chart-credits-email', agg, CHART_COLORS[0]);
+    } else {
+      drawEmpty('chart-credits-email', 'No email/credits data');
+    }
+
+    // Generations by Email bar chart
+    if (hasEmail && hasGens) {
+      const agg = aggregateByKey(filteredData, 'email', 'Number of Generations').slice(0, 15);
+      drawHorizontalBar('chart-gens-email', agg, CHART_COLORS[1]);
+    } else {
+      drawEmpty('chart-gens-email', 'No email/generations data');
+    }
+
+    // Type donut
+    if (hasType) {
+      const counts = countByKey(filteredData, 'type');
+      drawDonut('chart-type', 'legend-type', counts);
+    } else {
+      drawEmpty('chart-type', 'No type data');
+      document.getElementById('legend-type').innerHTML = '';
+    }
+
+    // Model donut
+    if (hasModel) {
+      const counts = countByKey(filteredData, 'modelName');
+      drawDonut('chart-model', 'legend-model', counts);
+    } else {
+      drawEmpty('chart-model', 'No model data');
+      document.getElementById('legend-model').innerHTML = '';
+    }
+
+    // Timeline
+    if (hasTime && hasCredits) {
+      drawTimeline('chart-timeline', filteredData);
+    } else {
+      drawEmpty('chart-timeline', 'No time/credits data');
+    }
+  }
+
+  function drawEmpty(canvasId, msg) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * dpr;
+    canvas.height = 200 * dpr;
+    canvas.style.height = '200px';
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, canvas.offsetWidth, 200);
+    ctx.fillStyle = '#8b8fa8';
+    ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(msg, canvas.offsetWidth / 2, 100);
+  }
+
+  function drawHorizontalBar(canvasId, data, color) {
+    if (data.length === 0) return drawEmpty(canvasId, 'No data');
+    const canvas = document.getElementById(canvasId);
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth;
+    const barH = 18;
+    const gap = 5;
+    const labelW = Math.min(160, W * 0.3);
+    const valW = 70;
+    const chartW = W - labelW - valW - 20;
+    const H = Math.max(200, data.length * (barH + gap) + 20);
+
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    const maxVal = Math.max(...data.map(d => d[1]), 1);
+
+    for (let i = 0; i < data.length; i++) {
+      const y = i * (barH + gap) + 10;
+      const [label, val] = data[i];
+
+      // Label
+      ctx.fillStyle = '#e4e6f0';
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      const truncLabel = label.length > 22 ? label.slice(0, 20) + '\u2026' : label;
+      ctx.fillText(truncLabel, labelW, y + barH / 2);
+
+      // Bar
+      const barW = Math.max(2, (val / maxVal) * chartW);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      roundRect(ctx, labelW + 10, y, barW, barH, 3);
+      ctx.fill();
+
+      // Value
+      ctx.fillStyle = '#8b8fa8';
+      ctx.textAlign = 'left';
+      const display = val % 1 === 0 ? val.toLocaleString() : val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+      ctx.fillText(display, labelW + 10 + barW + 6, y + barH / 2);
+    }
+  }
+
+  function drawDonut(canvasId, legendId, data) {
+    if (data.length === 0) {
+      drawEmpty(canvasId, 'No data');
+      document.getElementById(legendId).innerHTML = '';
+      return;
+    }
+    const canvas = document.getElementById(canvasId);
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth;
+    const H = 240;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    const total = data.reduce((s, d) => s + d[1], 0);
+    const cx = W / 2;
+    const cy = H / 2;
+    const R = Math.min(cx, cy) - 10;
+    const innerR = R * 0.55;
+
+    let startAngle = -Math.PI / 2;
+    for (let i = 0; i < data.length; i++) {
+      const slice = (data[i][1] / total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx + innerR * Math.cos(startAngle), cy + innerR * Math.sin(startAngle));
+      ctx.arc(cx, cy, R, startAngle, startAngle + slice);
+      ctx.arc(cx, cy, innerR, startAngle + slice, startAngle, true);
+      ctx.closePath();
+      ctx.fillStyle = getColor(i);
+      ctx.fill();
+      startAngle += slice;
+    }
+
+    // Center text
+    ctx.fillStyle = '#e4e6f0';
+    ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(total.toLocaleString(), cx, cy - 8);
+    ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = '#8b8fa8';
+    ctx.fillText('total', cx, cy + 12);
+
+    // Legend
+    const legend = document.getElementById(legendId);
+    legend.innerHTML = '';
+    for (let i = 0; i < data.length; i++) {
+      const item = document.createElement('span');
+      item.className = 'chart-legend-item';
+      const pct = ((data[i][1] / total) * 100).toFixed(1);
+      item.innerHTML = `<span class="legend-swatch" style="background:${getColor(i)}"></span>${escapeHtml(data[i][0])} (${pct}%)`;
+      legend.appendChild(item);
+    }
+  }
+
+  function drawTimeline(canvasId, data) {
+    const hasCredits = columns.includes('credits') && columnTypes['credits'] === 'number';
+    const hasTime = columns.includes('Time');
+    if (!hasCredits || !hasTime || data.length === 0) return drawEmpty(canvasId, 'No time/credits data');
+
+    // Aggregate credits by date
+    const byDate = {};
+    for (const row of data) {
+      const d = new Date(row['Time']);
+      if (isNaN(d.getTime())) continue;
+      const key = d.toISOString().slice(0, 10);
+      byDate[key] = (byDate[key] || 0) + (parseFloat(row['credits']) || 0);
+    }
+    const sorted = Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0]));
+    if (sorted.length === 0) return drawEmpty(canvasId, 'No valid dates');
+
+    const canvas = document.getElementById(canvasId);
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth;
+    const H = 200;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    const padL = 60, padR = 20, padT = 15, padB = 35;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+
+    const vals = sorted.map(d => d[1]);
+    const maxVal = Math.max(...vals, 1);
+
+    // Grid lines
+    ctx.strokeStyle = '#2e3348';
+    ctx.lineWidth = 1;
+    const gridLines = 4;
+    for (let i = 0; i <= gridLines; i++) {
+      const y = padT + (chartH / gridLines) * i;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(W - padR, y);
+      ctx.stroke();
+
+      const v = maxVal - (maxVal / gridLines) * i;
+      ctx.fillStyle = '#8b8fa8';
+      ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(v % 1 === 0 ? v.toLocaleString() : v.toFixed(1), padL - 8, y);
+    }
+
+    // Area fill
+    ctx.beginPath();
+    for (let i = 0; i < sorted.length; i++) {
+      const x = padL + (i / Math.max(sorted.length - 1, 1)) * chartW;
+      const y = padT + chartH - (sorted[i][1] / maxVal) * chartH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.lineTo(padL + chartW, padT + chartH);
+    ctx.lineTo(padL, padT + chartH);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(108, 122, 238, 0.15)';
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    for (let i = 0; i < sorted.length; i++) {
+      const x = padL + (i / Math.max(sorted.length - 1, 1)) * chartW;
+      const y = padT + chartH - (sorted[i][1] / maxVal) * chartH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#6c7aee';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Dots
+    for (let i = 0; i < sorted.length; i++) {
+      const x = padL + (i / Math.max(sorted.length - 1, 1)) * chartW;
+      const y = padT + chartH - (sorted[i][1] / maxVal) * chartH;
+      ctx.beginPath();
+      ctx.arc(x, y, sorted.length > 60 ? 1.5 : 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#6c7aee';
+      ctx.fill();
+    }
+
+    // X-axis labels
+    ctx.fillStyle = '#8b8fa8';
+    ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const labelCount = Math.min(sorted.length, Math.floor(chartW / 70));
+    const step = Math.max(1, Math.floor(sorted.length / labelCount));
+    for (let i = 0; i < sorted.length; i += step) {
+      const x = padL + (i / Math.max(sorted.length - 1, 1)) * chartW;
+      ctx.fillText(sorted[i][0].slice(5), x, padT + chartH + 8); // MM-DD
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+  }
+
+  // ---- Email Summary ----
+  let emailSortCol = 'credits';
+  let emailSortDir = 'desc';
+
+  function renderEmailSummary() {
+    const hasEmail = columns.includes('email');
+    if (!hasEmail) {
+      document.getElementById('email-summary-section').style.display = 'none';
+      return;
+    }
+    document.getElementById('email-summary-section').style.display = '';
+
+    const numCols = columns.filter(c => columnTypes[c] === 'number');
+    // Aggregate
+    const map = {};
+    for (const row of filteredData) {
+      const email = row['email'] || '(empty)';
+      if (!map[email]) {
+        map[email] = { email, _count: 0 };
+        for (const nc of numCols) map[email][nc] = 0;
+      }
+      map[email]._count++;
+      for (const nc of numCols) {
+        const v = parseFloat(row[nc]) || 0;
+        map[email][nc] += v;
+      }
+    }
+    let rows = Object.values(map);
+
+    // Sort
+    if (emailSortCol === 'email') {
+      rows.sort((a, b) => emailSortDir === 'asc' ? a.email.localeCompare(b.email) : b.email.localeCompare(a.email));
+    } else if (emailSortCol === '_count') {
+      rows.sort((a, b) => emailSortDir === 'asc' ? a._count - b._count : b._count - a._count);
+    } else {
+      rows.sort((a, b) => emailSortDir === 'asc' ? (a[emailSortCol] || 0) - (b[emailSortCol] || 0) : (b[emailSortCol] || 0) - (a[emailSortCol] || 0));
+    }
+
+    // Find max for each numeric column (for bar widths)
+    const maxes = {};
+    for (const nc of numCols) {
+      maxes[nc] = Math.max(...rows.map(r => r[nc] || 0), 1);
+    }
+
+    // Render head
+    const head = document.getElementById('email-summary-head');
+    head.innerHTML = '';
+    const tr = document.createElement('tr');
+    const allCols = ['email', '_count', ...numCols];
+    const colLabels = { email: 'Email', _count: 'Rows' };
+    for (const nc of numCols) colLabels[nc] = 'Total ' + nc;
+
+    for (const col of allCols) {
+      const th = document.createElement('th');
+      th.textContent = colLabels[col] || col;
+      if (emailSortCol === col) {
+        th.textContent += emailSortDir === 'asc' ? ' \u25B2' : ' \u25BC';
+      }
+      th.addEventListener('click', () => {
+        if (emailSortCol === col) emailSortDir = emailSortDir === 'asc' ? 'desc' : 'asc';
+        else { emailSortCol = col; emailSortDir = 'desc'; }
+        renderEmailSummary();
+      });
+      tr.appendChild(th);
+    }
+    head.appendChild(tr);
+
+    // Render body
+    const tbody = document.getElementById('email-summary-tbody');
+    tbody.innerHTML = '';
+    for (const row of rows) {
+      const tr = document.createElement('tr');
+
+      // Email
+      const tdEmail = document.createElement('td');
+      tdEmail.textContent = row.email;
+      tdEmail.title = row.email;
+      tdEmail.style.maxWidth = '240px';
+      tdEmail.style.overflow = 'hidden';
+      tdEmail.style.textOverflow = 'ellipsis';
+      tr.appendChild(tdEmail);
+
+      // Count
+      const tdCount = document.createElement('td');
+      tdCount.className = 'num';
+      tdCount.textContent = row._count.toLocaleString();
+      tr.appendChild(tdCount);
+
+      // Numeric cols with inline bar
+      for (const nc of numCols) {
+        const td = document.createElement('td');
+        const val = row[nc] || 0;
+        const pct = (val / maxes[nc]) * 100;
+        const display = val % 1 === 0 ? val.toLocaleString() : val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+        td.innerHTML = `<div class="email-bar-cell"><div class="email-bar-track"><div class="email-bar-fill" style="width:${pct}%"></div></div><span class="email-bar-val">${escapeHtml(display)}</span></div>`;
+        tr.appendChild(td);
+      }
+
+      tbody.appendChild(tr);
+    }
+  }
+
   // ---- Export ----
   function exportCSV() {
     let csv = columns.map(c => `"${c.replace(/"/g, '""')}"`).join(',') + '\n';
@@ -1111,6 +1762,22 @@
     filtersVisible = !filtersVisible;
     document.getElementById('filters-grid').style.display = filtersVisible ? '' : 'none';
     document.getElementById('filters-toggle').textContent = filtersVisible ? 'Hide' : 'Show';
+  });
+
+  // Charts toggle
+  let chartsVisible = true;
+  document.getElementById('charts-header').addEventListener('click', () => {
+    chartsVisible = !chartsVisible;
+    document.getElementById('charts-grid').style.display = chartsVisible ? '' : 'none';
+    document.getElementById('charts-toggle').textContent = chartsVisible ? 'Hide' : 'Show';
+  });
+
+  // Email summary toggle
+  let emailSummaryVisible = false;
+  document.getElementById('email-summary-header').addEventListener('click', () => {
+    emailSummaryVisible = !emailSummaryVisible;
+    document.getElementById('email-summary-body').style.display = emailSummaryVisible ? '' : 'none';
+    document.getElementById('email-summary-toggle').textContent = emailSummaryVisible ? 'Hide' : 'Show';
   });
 })();
 </script>
