@@ -588,6 +588,138 @@
       text-align: right;
     }
 
+    /* Inactive Users */
+    .inactive-users {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .inactive-users-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+    }
+
+    .inactive-users-header h2 {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .inactive-users-body {
+      padding: 0 1.25rem 1.25rem;
+    }
+
+    .inactive-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .inactive-controls label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .inactive-controls input[type="date"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .inactive-controls input[type="date"]:focus {
+      border-color: var(--accent);
+    }
+
+    .inactive-hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding: 1.5rem 0;
+      text-align: center;
+    }
+
+    .inactive-count {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .inactive-count strong {
+      color: var(--warning);
+      font-weight: 700;
+    }
+
+    .inactive-users .table-scroll {
+      overflow-x: auto;
+    }
+
+    .inactive-users table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .inactive-users thead th {
+      background: var(--bg);
+      padding: 0.65rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .inactive-users thead th:hover {
+      color: var(--text);
+    }
+
+    .inactive-users tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .inactive-users tbody tr:hover {
+      background: var(--surface-hover);
+    }
+
+    .inactive-users tbody td {
+      padding: 0.55rem 1rem;
+      white-space: nowrap;
+    }
+
+    .inactive-users tbody td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .inactive-badge {
+      display: inline-block;
+      background: rgba(210, 153, 34, 0.15);
+      color: var(--warning);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       #dashboard {
@@ -686,6 +818,23 @@
           <thead id="email-summary-head"></thead>
           <tbody id="email-summary-tbody"></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inactive Users -->
+  <div class="inactive-users" id="inactive-users-section" style="display:none;">
+    <div class="inactive-users-header" id="inactive-users-header">
+      <h2>Inactive Users</h2>
+      <span class="section-toggle" id="inactive-users-toggle">Hide</span>
+    </div>
+    <div id="inactive-users-body" class="inactive-users-body">
+      <div class="inactive-controls">
+        <label for="inactive-date">No activity after:</label>
+        <input type="date" id="inactive-date" />
+      </div>
+      <div id="inactive-users-content">
+        <div class="inactive-hint">Pick a date above to find users who have not used xFigura after that date.</div>
       </div>
     </div>
   </div>
@@ -1037,6 +1186,7 @@
     renderStats();
     renderCharts();
     renderEmailSummary();
+    renderInactiveUsers();
     renderActiveTags();
     renderTable();
     renderPagination();
@@ -1681,6 +1831,137 @@
     }
   }
 
+  // ---- Inactive Users ----
+  let inactiveSortCol = 'lastActivity';
+  let inactiveSortDir = 'asc';
+
+  function renderInactiveUsers() {
+    const hasEmail = columns.includes('email');
+    const hasTime = columns.includes('Time');
+    const section = document.getElementById('inactive-users-section');
+
+    if (!hasEmail || !hasTime) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+
+    const cutoffStr = document.getElementById('inactive-date').value;
+    const content = document.getElementById('inactive-users-content');
+
+    if (!cutoffStr) {
+      content.innerHTML = '<div class="inactive-hint">Pick a date above to find users who have not used xFigura after that date.</div>';
+      return;
+    }
+
+    const cutoff = new Date(cutoffStr + 'T23:59:59').getTime();
+
+    var userMap = {};
+    for (var ri = 0; ri < rawData.length; ri++) {
+      var row = rawData[ri];
+      var email = row['email'];
+      if (!email) continue;
+      var d = new Date(row['Time']);
+      if (isNaN(d.getTime())) continue;
+      var ts = d.getTime();
+      if (!userMap[email]) {
+        userMap[email] = {
+          email: email,
+          lastActivity: ts,
+          lastActivityDate: d,
+          totalCredits: 0,
+          totalGenerations: 0,
+          rowCount: 0
+        };
+      }
+      if (ts > userMap[email].lastActivity) {
+        userMap[email].lastActivity = ts;
+        userMap[email].lastActivityDate = d;
+      }
+      userMap[email].totalCredits += parseFloat(row['credits']) || 0;
+      userMap[email].totalGenerations += parseFloat(row['Number of Generations']) || 0;
+      userMap[email].rowCount++;
+    }
+
+    var inactive = [];
+    var emails = Object.keys(userMap);
+    for (var ei = 0; ei < emails.length; ei++) {
+      if (userMap[emails[ei]].lastActivity <= cutoff) {
+        inactive.push(userMap[emails[ei]]);
+      }
+    }
+
+    if (inactiveSortCol === 'email') {
+      inactive.sort(function(a, b) { return inactiveSortDir === 'asc' ? a.email.localeCompare(b.email) : b.email.localeCompare(a.email); });
+    } else if (inactiveSortCol === 'lastActivity') {
+      inactive.sort(function(a, b) { return inactiveSortDir === 'asc' ? a.lastActivity - b.lastActivity : b.lastActivity - a.lastActivity; });
+    } else if (inactiveSortCol === 'totalCredits') {
+      inactive.sort(function(a, b) { return inactiveSortDir === 'asc' ? a.totalCredits - b.totalCredits : b.totalCredits - a.totalCredits; });
+    } else if (inactiveSortCol === 'totalGenerations') {
+      inactive.sort(function(a, b) { return inactiveSortDir === 'asc' ? a.totalGenerations - b.totalGenerations : b.totalGenerations - a.totalGenerations; });
+    } else if (inactiveSortCol === 'rowCount') {
+      inactive.sort(function(a, b) { return inactiveSortDir === 'asc' ? a.rowCount - b.rowCount : b.rowCount - a.rowCount; });
+    }
+
+    if (inactive.length === 0) {
+      content.innerHTML = '<div class="inactive-hint">All users have activity after ' + escapeHtml(cutoffStr) + '.</div>';
+      return;
+    }
+
+    var daysSinceLabel = function(ts) {
+      var days = Math.floor((Date.now() - ts) / 86400000);
+      if (days === 0) return 'today';
+      if (days === 1) return '1 day ago';
+      return days + ' days ago';
+    };
+
+    var hasCredits = columns.includes('credits') && columnTypes['credits'] === 'number';
+    var hasGens = columns.includes('Number of Generations') && columnTypes['Number of Generations'] === 'number';
+
+    var html = '<div class="inactive-count"><strong>' + inactive.length + '</strong> user' + (inactive.length !== 1 ? 's' : '') + ' inactive since ' + escapeHtml(cutoffStr) + '</div>';
+    html += '<div class="table-scroll"><table><thead><tr>';
+
+    var colDefs = [
+      { key: 'email', label: 'Email' },
+      { key: 'lastActivity', label: 'Last Activity' },
+      { key: 'rowCount', label: 'Total Uses' }
+    ];
+    if (hasCredits) colDefs.push({ key: 'totalCredits', label: 'Total Credits' });
+    if (hasGens) colDefs.push({ key: 'totalGenerations', label: 'Total Generations' });
+
+    for (var ci = 0; ci < colDefs.length; ci++) {
+      var arrow = inactiveSortCol === colDefs[ci].key ? (inactiveSortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
+      html += '<th data-inactive-sort="' + colDefs[ci].key + '">' + escapeHtml(colDefs[ci].label) + arrow + '</th>';
+    }
+    html += '<th>Inactive</th></tr></thead><tbody>';
+
+    for (var ii = 0; ii < inactive.length; ii++) {
+      var u = inactive[ii];
+      var lastDateStr = u.lastActivityDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      html += '<tr>';
+      html += '<td>' + escapeHtml(u.email) + '</td>';
+      html += '<td>' + escapeHtml(lastDateStr) + '</td>';
+      html += '<td class="num">' + u.rowCount.toLocaleString() + '</td>';
+      if (hasCredits) html += '<td class="num">' + (u.totalCredits % 1 === 0 ? u.totalCredits.toLocaleString() : u.totalCredits.toLocaleString(undefined, { maximumFractionDigits: 2 })) + '</td>';
+      if (hasGens) html += '<td class="num">' + (u.totalGenerations % 1 === 0 ? u.totalGenerations.toLocaleString() : u.totalGenerations.toLocaleString(undefined, { maximumFractionDigits: 2 })) + '</td>';
+      html += '<td><span class="inactive-badge">' + daysSinceLabel(u.lastActivity) + '</span></td>';
+      html += '</tr>';
+    }
+
+    html += '</tbody></table></div>';
+    content.innerHTML = html;
+
+    var sortHeaders = content.querySelectorAll('[data-inactive-sort]');
+    for (var si = 0; si < sortHeaders.length; si++) {
+      sortHeaders[si].addEventListener('click', function() {
+        var col = this.getAttribute('data-inactive-sort');
+        if (inactiveSortCol === col) inactiveSortDir = inactiveSortDir === 'asc' ? 'desc' : 'asc';
+        else { inactiveSortCol = col; inactiveSortDir = col === 'email' ? 'asc' : 'desc'; }
+        renderInactiveUsers();
+      });
+    }
+  }
+
   // ---- Export ----
   function exportCSV() {
     let csv = columns.map(c => `"${c.replace(/"/g, '""')}"`).join(',') + '\n';
@@ -1778,6 +2059,19 @@
     emailSummaryVisible = !emailSummaryVisible;
     document.getElementById('email-summary-body').style.display = emailSummaryVisible ? '' : 'none';
     document.getElementById('email-summary-toggle').textContent = emailSummaryVisible ? 'Hide' : 'Show';
+  });
+
+  // Inactive users toggle
+  let inactiveUsersVisible = true;
+  document.getElementById('inactive-users-header').addEventListener('click', () => {
+    inactiveUsersVisible = !inactiveUsersVisible;
+    document.getElementById('inactive-users-body').style.display = inactiveUsersVisible ? '' : 'none';
+    document.getElementById('inactive-users-toggle').textContent = inactiveUsersVisible ? 'Hide' : 'Show';
+  });
+
+  // Inactive users date input
+  document.getElementById('inactive-date').addEventListener('change', () => {
+    renderInactiveUsers();
   });
 })();
 </script>
